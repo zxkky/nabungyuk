@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NabungYuk - Transaksi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#16a34a',
+                        'primary-dark': '#15803d',
+                        secondary: '#2563eb',
+                        success: '#15803d',
+                        danger: '#dc2626',
+                        warning: '#d97706',
+                        info: '#2563eb',
+                    },
+                    borderRadius: {
+                        'card': '16px',
+                    },
+                    spacing: {
+                        'card': '24px',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Shared CSS & JS -->
+    <link rel="stylesheet" href="/static/css/app.css">
+    <script src="/static/js/app.js?v=4"></script>
+</head>
+<body class="bg-gray-50 min-h-screen app-shell" id="app">
+    <aside class="app-sidebar">
+  <a class="brand" href="/dashboard.html"><span class="brand-mark">🌱</span><span><span class="brand-title">NabungYuk</span><span class="brand-sub">Personal finance</span></span></a>
+  <div class="nav-section">Menu utama</div>
+  <nav class="sidebar-nav">
+    <a href="/dashboard.html" class="sidebar-link" data-nav="dashboard"><span class="nav-icon">⌂</span>Dashboard</a>
+    <a href="/transactions.html" class="sidebar-link" data-nav="transactions"><span class="nav-icon">↕</span>Transaksi</a>
+    <a href="/savings.html" class="sidebar-link" data-nav="savings"><span class="nav-icon">◎</span>Tabungan</a>
+    <a href="/reminders.html" class="sidebar-link" data-nav="reminders"><span class="nav-icon">◷</span>Pengingat</a>
+    <a href="/reports.html" class="sidebar-link" data-nav="reports"><span class="nav-icon">▥</span>Laporan</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user"><div class="avatar" id="sidebar-avatar">N</div><div style="min-width:0"><div class="sidebar-user-name" id="sidebar-user-name">Pengguna</div><div class="sidebar-user-label">Akun aktif</div></div></div>
+    <button onclick="logout()" class="btn sidebar-logout"><span class="nav-icon">↪</span>Keluar</button>
+  </div>
+</aside>
+    <!-- Loading overlay -->
+    <div id="loading" class="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="app-main-shell">
+        <header class="app-header">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-2 md:hidden">🌱</span>
+                        <span class="font-bold text-xl text-gray-800 md:hidden">NabungYuk</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name" class="text-gray-700 font-medium hidden sm:block"></span>
+                        <button id="mobile-menu-button" class="md:hidden text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Mobile menu (hidden by default) -->
+                <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+                    <a href="/dashboard.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">📊 Dashboard</a>
+                    <a href="/transactions.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">💰 Transaksi</a>
+                    <a href="/savings.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">🎯 Tabungan</a>
+                    <a href="/reminders.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">🔔 Pengingat</a>
+                    <a href="/reports.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">📈 Laporan</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50">🚪 Keluar</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="page-content">
+                <!-- Header section with spacing -->
+                <div class="mb-8 flex justify-between items-center">
+                    <div>
+                        <h1 class="h-xl text-gray-800">Transaksi</h1>
+                        <p class="text-gray-500 mt-1">Kelola semua transaksi keuangan Anda</p>
+                    </div>
+                    <button onclick="openModal()" class="btn btn-primary">
+                        + Tambah Transaksi
+                    </button>
+                </div>
+
+                <!-- Search & Filter Bar -->
+                <div class="card mb-8">
+                    <div class="flex flex-col lg:flex-row gap-4">
+                        <!-- Search -->
+                        <div class="flex-1">
+                            <label class="form-label" for="search-input">Cari Transaksi</label>
+                            <input type="text" id="search-input" placeholder="Cari berdasarkan judul..."
+                                   class="form-input"
+                                   onkeyup="filterTransactions()">
+                        </div>
+
+                        <!-- Filter Type -->
+                        <div class="lg:w-48">
+                            <label class="form-label" for="type-filter">Jenis</label>
+                            <select id="type-filter" class="form-input" onchange="filterTransactions()">
+                                <option value="all">Semua</option>
+                                <option value="income">Pemasukan</option>
+                                <option value="expense">Pengeluaran</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Category -->
+                        <div class="lg:w-48">
+                            <label class="form-label" for="category-filter">Kategori</label>
+                            <select id="category-filter" class="form-input" onchange="filterTransactions()">
+                                <option value="all">Semua Kategori</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Date From -->
+                        <div class="lg:w-48">
+                            <label class="form-label" for="date-from">Dari</label>
+                            <input type="date" id="date-from" class="form-input" onchange="filterTransactions()">
+                        </div>
+
+                        <!-- Filter Date To -->
+                        <div class="lg:w-48">
+                            <label class="form-label" for="date-to">Sampai</label>
+                            <input type="date" id="date-to" class="form-input" onchange="filterTransactions()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Table -->
+                <div class="bg-white rounded-card shadow overflow-hidden card table-scroll-card">
+                    <table class="w-full table-zebra table-hover">
+                        <thead class="table-sticky-header">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Tanggal
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Keterangan
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Kategori
+                                </th>
+                                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Jenis
+                                </th>
+                                <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Jumlah
+                                </th>
+                                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-list" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="6" class="text-center py-12 text-gray-400">
+                                    Memuat...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination" class="mt-4 flex items-center justify-between text-sm text-gray-600"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-card shadow-xl w-full max-w-lg">
+            <div class="p-8">
+                <h3 id="tx-modal-title" class="h-lg text-gray-800 mb-6">Tambah Transaksi</h3>
+
+                <form id="tx-form" class="space-y-6">
+                    <!-- Amount -->
+                    <div>
+                        <label class="form-label" for="amount">Jumlah (Rp)</label>
+                        <input type="number" id="amount" placeholder="Masukkan jumlah transaksi"
+                               class="form-input" required>
+                        <div id="amount-error" class="form-error">Jumlah harus lebih dari 0</div>
+                    </div>
+
+                    <!-- Type -->
+                    <div>
+                        <label class="form-label" for="type">Jenis Transaksi</label>
+                        <select id="type" class="form-input" required>
+                            <option value="">Pilih jenis transaksi</option>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                        <div id="type-error" class="form-error">Pilih jenis transaksi</div>
+                    </div>
+
+                    <!-- Title -->
+                    <div>
+                        <label class="form-label" for="title">Judul</label>
+                        <input type="text" id="title" placeholder="Masukkan judul transaksi"
+                               class="form-input" required>
+                        <div id="title-error" class="form-error">Judul wajib diisi</div>
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="form-label" for="category">Kategori</label>
+                        <select id="category" class="form-input" required>
+                            <option value="">Pilih kategori</option>
+                            <!-- Income Categories -->
+                            <optgroup label="Pemasukan">
+                                <option value="Gaji">Gaji</option>
+                                <option value="Uang Saku">Uang Saku</option>
+                                <option value="Freelance">Freelance</option>
+                                <option value="Bonus">Bonus</option>
+                                <option value="Bisnis">Bisnis</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </optgroup>
+                            <!-- Expense Categories -->
+                            <optgroup label="Pengeluaran">
+                                <option value="Makanan">Makanan</option>
+                                <option value="Transportasi">Transportasi</option>
+                                <option value="Belanja">Belanja</option>
+                                <option value="Hiburan">Hiburan</option>
+                                <option value="Pendidikan">Pendidikan</option>
+                                <option value="Tagihan">Tagihan</option>
+                                <option value="Kesehatan">Kesehatan</option>
+                                <option value="Keluarga">Keluarga</option>
+                                <option value="Subscription">Subscription</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </optgroup>
+                        </select>
+                        <div id="category-error" class="form-error">Pilih kategori</div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="transaction-date">Tanggal</label>
+                        <input type="date" id="transaction-date" class="form-input" required>
+                        <div id="date-error" class="form-error">Tanggal wajib diisi</div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="receipt">Nota (opsional, JPG/PNG/WebP maks. 5MB)</label>
+                        <input type="file" id="receipt" class="form-input" accept="image/jpeg,image/png,image/webp">
+                    </div>
+
+                    <!-- Form actions -->
+                    <div class="flex justify-end space-x-3 pt-6 border-t">
+                        <button type="button" onclick="closeModal()"
+                                class="btn btn-outline">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State Template (hidden, used by JS) -->
+    <template id="empty-template">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 10h4l3-3h4l3 3h4v10a2 2 0 01-2 2H5a2 2 0 01-2-2V10z"></path>
+                </svg>
+            </div>
+            <h4 class="empty-state-title">Belum ada transaksi</h4>
+            <p class="empty-state-text">Tambahkan transaksi pertama Anda untuk mulai melacak pengeluaran dan pemasukan</p>
+            <button onclick="openModal()" class="btn btn-primary">
+                + Tambah Transaksi Pertama
+            </button>
+        </div>
+    </template>
+
+    <!-- Tesseract.js CDN (OCR engine) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
+    <script>
+        const token = window.checkAuth();
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('user-name').textContent = window.escapeHTML(user.name || 'Pengguna');
+        window.initMobileMenu(); window.renderSidebar('transactions'); window.hideLoading();
+
+        async function scanReceipt(file) {
+            showLoading();
+            try {
+                const result = await window.extractDataFromReceipt(file);
+                document.getElementById('title').value = result.title;
+                document.getElementById('amount').value = String(result.amount || '');
+                document.getElementById('amount').dispatchEvent(new Event('input', { bubbles: true }));
+                console.log('[OCR] Nominal dimasukkan ke form:', document.getElementById('amount').value);
+                document.getElementById('category').value = result.category;
+                document.getElementById('transaction-date').value = result.date;
+                window.toast('Nota berhasil discan. Form terisi otomatis.');
+            } catch (e) {
+                console.error(e);
+                window.toast('Gagal memindai nota. Silakan isi manual.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        document.getElementById('receipt').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) scanReceipt(file);
+        });
+
+        const categories = ['Makanan','Transportasi','Belanja','Hiburan','Pendidikan','Tagihan','Kesehatan','Keluarga','Subscription','Gaji','Uang Saku','Freelance','Bonus','Bisnis','Lainnya'];
+        const categoryFilter = document.getElementById('category-filter');
+        categories.forEach(cat => { const o=document.createElement('option'); o.value=cat; o.textContent=cat; categoryFilter.appendChild(o); });
+        let editingId = null;
+        let searchTimer;
+        let currentPage = 1;
+
+        function getCategoryBadgeClass(category) {
+            const map={Makanan:'badge-food',Transportasi:'badge-transport',Belanja:'badge-shopping',Hiburan:'badge-entertainment',Pendidikan:'badge-education',Kesehatan:'badge-health',Tagihan:'badge-bill',Keluarga:'badge-family',Subscription:'badge-subscription',Gaji:'badge-salary','Uang Saku':'badge-allowance',Freelance:'badge-freelance',Bonus:'badge-bonus',Bisnis:'badge-business',Lainnya:'badge-other'};
+            return map[category] || 'badge-other';
+        }
+
+        async function loadTransactions(filters={}) {
+            const url=new URL('/api/transactions', location.origin);
+            currentPage = filters.page || currentPage;
+            url.searchParams.set('page',String(currentPage)); url.searchParams.set('page_size','20');
+            if(filters.type && filters.type!=='all') url.searchParams.set('type',filters.type);
+            if(filters.category && filters.category!=='all') url.searchParams.set('category',filters.category);
+            if(filters.search) url.searchParams.set('search',filters.search);
+            if(filters.dateFrom) url.searchParams.set('date_from',filters.dateFrom);
+            if(filters.dateTo) url.searchParams.set('date_to',filters.dateTo);
+            const data=await window.api(url.toString()); const list=document.getElementById('transaction-list');
+            if(!data.success){ list.innerHTML=`<tr><td colspan="6" class="text-center py-12 text-red-500">${window.escapeHTML(data.message||'Gagal memuat transaksi')}</td></tr>`; return; }
+            const txs=data.data.transactions||[];
+            const meta=data.data.meta||{};
+            renderPagination(meta);
+            if(!txs.length){ list.innerHTML='<tr><td colspan="6" class="text-center py-12 text-gray-400">Belum ada transaksi untuk filter ini.</td></tr>'; return; }
+            list.innerHTML=txs.map(tx=>{
+                const income=tx.type==='income';
+                return `<tr class="border-t border-gray-100 hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${window.formatDate(tx.transaction_date)}</td>
+                    <td class="px-6 py-4"><span class="font-medium text-gray-800">${window.escapeHTML(tx.title||'Tanpa judul')}</span>${tx.receipt_url?`<button type="button" class="ml-2 text-primary text-xs" onclick="viewReceipt(${tx.id})">Nota</button>`:''}</td>
+                    <td class="px-6 py-4"><span class="badge ${getCategoryBadgeClass(tx.category)}">${window.escapeHTML(tx.category||'-')}</span></td>
+                    <td class="px-6 py-4 text-center"><span class="badge ${income?'badge-income':'badge-expense'}">${income?'Pemasukan':'Pengeluaran'}</span></td>
+                    <td class="px-6 py-4 text-right font-semibold ${income?'text-success':'text-danger'}">${income?'+':'-'}${window.formatCurrency(tx.amount)}</td>
+                    <td class="px-6 py-4 text-center whitespace-nowrap">
+                        <button onclick="editTransaction(${tx.id})" class="text-primary px-2 py-1 rounded-lg hover:bg-gray-100">Edit</button>
+                        <button onclick="deleteTransaction(${tx.id})" class="text-danger px-2 py-1 rounded-lg hover:bg-red-50">Hapus</button>
+                    </td></tr>`;
+            }).join('');
+        }
+
+        function currentFilters(){ return {page:currentPage,type:document.getElementById('type-filter').value,category:document.getElementById('category-filter').value,search:document.getElementById('search-input').value.trim(),dateFrom:document.getElementById('date-from').value,dateTo:document.getElementById('date-to').value}; }
+        function renderPagination(meta){ const el=document.getElementById('pagination'); const totalPages=Number(meta.total_pages||0); if(!totalPages||totalPages<=1){el.textContent='';return;} el.innerHTML=`<span>Halaman ${meta.page} dari ${totalPages} (${meta.total} transaksi)</span><span class="space-x-2"><button ${meta.page<=1?'disabled':''} onclick="goPage(${meta.page-1})" class="btn btn-outline">Sebelumnya</button><button ${meta.page>=totalPages?'disabled':''} onclick="goPage(${meta.page+1})" class="btn btn-outline">Berikutnya</button></span>`; }
+        function goPage(page){ if(page<1)return; currentPage=page; loadTransactions(currentFilters()); }
+        function filterTransactions(){ clearTimeout(searchTimer); currentPage=1; searchTimer=setTimeout(()=>loadTransactions(currentFilters()),300); }
+        document.getElementById('search-input').addEventListener('input',filterTransactions);
+
+        function openModal(tx=null){
+            editingId=tx?.id||null;
+            document.getElementById('tx-modal-title').textContent=editingId?'Edit Transaksi':'Tambah Transaksi';
+            document.getElementById('amount').value=tx?.amount||''; document.getElementById('type').value=tx?.type||'';
+            document.getElementById('title').value=tx?.title||''; document.getElementById('category').value=tx?.category||'';
+            document.getElementById('transaction-date').value=tx?.transaction_date ? new Date(tx.transaction_date).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+            document.getElementById('receipt').value=''; clearErrors(); document.getElementById('modal').classList.remove('hidden'); document.getElementById('modal').classList.add('flex');
+        }
+        function closeModal(){ document.getElementById('modal').classList.add('hidden'); document.getElementById('modal').classList.remove('flex'); document.getElementById('tx-form').reset(); editingId=null; clearErrors(); }
+        function clearErrors(){ ['amount-error','type-error','title-error','category-error','date-error'].forEach(id=>{const e=document.getElementById(id); if(e){e.classList.remove('show'); e.textContent='';}}); }
+        function error(id,msg){const e=document.getElementById(id); e.textContent=msg; e.classList.add('show');}
+        function validateForm(){
+            clearErrors(); let ok=true; const amount=Number(document.getElementById('amount').value); const type=document.getElementById('type').value; const title=document.getElementById('title').value.trim(); const category=document.getElementById('category').value; const date=document.getElementById('transaction-date').value;
+            if(!Number.isFinite(amount)||amount<=0){error('amount-error','Jumlah harus lebih dari 0. Jika memakai OCR, pastikan nominal TOTAL terbaca.');ok=false;} if(!type){error('type-error','Pilih jenis transaksi');ok=false;} if(!title||title.length>255){error('title-error','Judul wajib diisi dan maksimal 255 karakter');ok=false;} if(!category){error('category-error','Pilih kategori');ok=false;} if(!date){error('date-error','Tanggal wajib diisi');ok=false;} return ok;
+        }
+        document.getElementById('type').addEventListener('change',()=>{ const type=document.getElementById('type').value; const opts=[...document.getElementById('category').options]; opts.forEach(o=>{ if(!o.value)return; const income=['Gaji','Uang Saku','Freelance','Bonus','Bisnis','Lainnya'].includes(o.value); o.hidden=type==='income'?!income:!income; }); if(![...document.getElementById('category').options].some(o=>o.value===document.getElementById('category').value&&!o.hidden)) document.getElementById('category').value=''; });
+
+        async function viewReceipt(id){
+            const token=localStorage.getItem('token');
+            try {
+                const response=await fetch(`/api/transactions/${id}/receipt`,{headers:{Authorization:`Bearer ${token}`}});
+                if(!response.ok){window.toast('Nota tidak dapat dibuka','error');return;}
+                const blob=await response.blob(); const url=URL.createObjectURL(blob); window.open(url,'_blank','noopener'); setTimeout(()=>URL.revokeObjectURL(url),60000);
+            } catch(_){window.toast('Gagal membuka nota','error');}
+        }
+
+        async function editTransaction(id){ const data=await window.api(`/api/transactions/${id}`); if(!data.success){window.toast(data.message||'Gagal mengambil transaksi','error');return;} openModal(data.data); }
+        async function deleteTransaction(id){ if(!window.confirmAction('Apakah kamu yakin ingin menghapus transaksi ini?')) return; const data=await window.api(`/api/transactions/${id}`,{method:'DELETE'}); if(!data.success){window.toast(data.message||'Gagal menghapus transaksi','error');return;} window.toast('Transaksi berhasil dihapus'); loadTransactions(currentFilters()); }
+
+        document.getElementById('tx-form').addEventListener('submit',async e=>{
+            e.preventDefault(); if(!validateForm()) return;
+            const btn=e.submitter; btn.disabled=true; btn.textContent='Menyimpan...';
+            const file=document.getElementById('receipt').files[0]; const amountValue=String(document.getElementById('amount').value||'').trim(); const body=new FormData();
+            body.append('amount',amountValue); body.append('type',document.getElementById('type').value); body.append('title',document.getElementById('title').value.trim()); body.append('category',document.getElementById('category').value); body.append('transaction_date',document.getElementById('transaction-date').value); if(file) body.append('receipt',file);
+            const url=editingId?`/api/transactions/${editingId}`:'/api/transactions'; const data=await window.api(url,{method:editingId?'PUT':'POST',body}); btn.disabled=false; btn.textContent='Simpan';
+            if(!data.success){window.toast(data.message||'Gagal menyimpan transaksi','error');return;} closeModal(); window.toast(editingId?'Transaksi berhasil diupdate':'Transaksi berhasil dibuat'); loadTransactions(currentFilters());
+        });
+
+        loadTransactions();
+    </script>
+<script>
+      (() => {
+        const path=location.pathname.split('/').pop().replace('.html','') || 'dashboard';
+        document.querySelectorAll('[data-nav]').forEach(a=>{ if(a.dataset.nav===path) a.classList.add('sidebar-link-active'); });
+        const u=JSON.parse(localStorage.getItem('user')||'{}');
+        const name=u.name||'Pengguna';
+        const sn=document.getElementById('sidebar-user-name'); const av=document.getElementById('sidebar-avatar');
+        if(sn) sn.textContent=name; if(av) av.textContent=name.trim().charAt(0).toUpperCase()||'N';
+      })();
+    </script>
+</body>
+</html>

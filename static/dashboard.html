@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NabungYuk - Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#16a34a',
+                        'primary-dark': '#15803d',
+                        secondary: '#2563eb',
+                        success: '#15803d',
+                        danger: '#dc2626',
+                        warning: '#d97706',
+                        info: '#2563eb',
+                    },
+                    borderRadius: {
+                        'card': '16px',
+                    },
+                    spacing: {
+                        'card': '24px',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Shared CSS & JS -->
+    <link rel="stylesheet" href="/static/css/app.css">
+    <script src="/static/js/app.js?v=2"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen app-shell" id="app">
+    <aside class="app-sidebar">
+  <a class="brand" href="/dashboard.html"><span class="brand-mark">🌱</span><span><span class="brand-title">NabungYuk</span><span class="brand-sub">Personal finance</span></span></a>
+  <div class="nav-section">Menu utama</div>
+  <nav class="sidebar-nav">
+    <a href="/dashboard.html" class="sidebar-link" data-nav="dashboard"><span class="nav-icon">⌂</span>Dashboard</a>
+    <a href="/transactions.html" class="sidebar-link" data-nav="transactions"><span class="nav-icon">↕</span>Transaksi</a>
+    <a href="/savings.html" class="sidebar-link" data-nav="savings"><span class="nav-icon">◎</span>Tabungan</a>
+    <a href="/reminders.html" class="sidebar-link" data-nav="reminders"><span class="nav-icon">◷</span>Pengingat</a>
+    <a href="/reports.html" class="sidebar-link" data-nav="reports"><span class="nav-icon">▥</span>Laporan</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user"><div class="avatar" id="sidebar-avatar">N</div><div style="min-width:0"><div class="sidebar-user-name" id="sidebar-user-name">Pengguna</div><div class="sidebar-user-label">Akun aktif</div></div></div>
+    <button onclick="logout()" class="btn sidebar-logout"><span class="nav-icon">↪</span>Keluar</button>
+  </div>
+</aside>
+    <!-- Loading overlay -->
+    <div id="loading" class="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="app-main-shell">
+        <header class="app-header">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-2 md:hidden">🌱</span>
+                        <span class="font-bold text-xl text-gray-800 md:hidden">NabungYuk</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name" class="text-gray-700 font-medium hidden sm:block"></span>
+                        <button id="mobile-menu-button" class="md:hidden text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Mobile menu (hidden by default) -->
+                <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+                    <a href="/dashboard.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">📊 Dashboard</a>
+                    <a href="/transactions.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">💰 Transaksi</a>
+                    <a href="/savings.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">🎯 Tabungan</a>
+                    <a href="/reminders.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">🔔 Pengingat</a>
+                    <a href="/reports.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">📈 Laporan</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50">🚪 Keluar</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="page-content">
+                <!-- Page Header -->
+                <div class="page-heading">
+                    <div>
+                    <div class="page-eyebrow">NabungYuk</div>
+                    <h1 class="h-page text-gray-800">Dashboard</h1>
+                    <p class="text-gray-500 mt-1">Ringkasan keuangan Anda</p>
+                    </div>
+                </div>
+
+                <!-- Summary Cards — with enhanced spacing -->
+                <div class="dashboard-grid mb-8">
+                    <div class="card-sm">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 rounded-xl p-4">
+                                <svg class="icon-md text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 8c-2.21 0-4.3-.85-5.87-2.2l1.43-1.43A7.94 7.94 0 0112 6c1.95.65 3.68 1.9 5.02 3.58l-1.43 1.43A7.93 7.93 0 0112 8z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 w-full">
+                                <p class="text-gray-500 text-sm">Saldo Terkini</p>
+                                <p id="current-balance" class="text-3xl font-bold text-gray-800 mt-1">Rp0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-sm">
+                        <div class="flex items-center">
+                            <div class="bg-green-100 rounded-xl p-4">
+                                <svg class="icon-md text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 8c-2.21 0-4.3-.85-5.87-2.2l1.43-1.43A7.94 7.94 0 0112 6c1.95.65 3.68 1.9 5.02 3.58l-1.43 1.43A7.93 7.93 0 0112 8z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 w-full">
+                                <p class="text-gray-500 text-sm">Total Pemasukan</p>
+                                <p id="total-income" class="text-3xl font-bold text-success mt-1">Rp0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-sm">
+                        <div class="flex items-center">
+                            <div class="bg-red-100 rounded-xl p-4">
+                                <svg class="icon-md text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 8c-2.21 0-4.3-.85-5.87-2.2l1.43-1.43A7.94 7.94 0 0112 6c1.95.65 3.68 1.9 5.02 3.58l-1.43 1.43A7.93 7.93 0 0112 8z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 w-full">
+                                <p class="text-gray-500 text-sm">Total Pengeluaran</p>
+                                <p id="total-expense" class="text-3xl font-bold text-danger mt-1">Rp0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Section - enlarged -->
+                <div class="section-margin">
+                    <div class="card">
+                        <h3 class="h-lg text-gray-800 mb-6">Statistik Transaksi</h3>
+                        <div class="chart-container">
+                            <canvas id="transactionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="h-lg text-gray-800">Transaksi Terbaru</h3>
+                        <a href="/transactions.html" class="text-primary text-sm font-medium hover:underline flex items-center">
+                            Lihat semua
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <div id="recent-transactions" class="space-y-3">
+                        <p class="text-gray-500 text-center py-4">Memuat...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check auth
+        const token = window.checkAuth();
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        document.getElementById('user-name').textContent = user.name || 'Pengguna';
+
+        // Initialize mobile menu & sidebar
+        window.initMobileMenu();
+        window.renderSidebar('dashboard');
+
+        // Hide loading after sidebar renders
+        window.hideLoading();
+
+        async function fetchAPI(url, options = {}) {
+            return await window.api(url, options);
+        }
+
+        async function loadDashboard() {
+            try {
+                const data = await fetchAPI('/api/dashboard');
+                if (data.success) {
+                    document.getElementById('current-balance').textContent = window.formatCurrency(data.data.balance);
+                    document.getElementById('total-income').textContent = window.formatCurrency(data.data.income);
+                    document.getElementById('total-expense').textContent = window.formatCurrency(data.data.expense);
+                }
+
+                // Load chart
+                const chartData = await fetchAPI('/api/dashboard/chart');
+                if (chartData.success) {
+                    renderChart(chartData.data);
+                }
+
+                // Load recent transactions
+                const txData = await fetchAPI('/api/transactions?page=1&page_size=5');
+                if (txData.success) {
+                    renderTransactions(txData.data);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                const container=document.getElementById('recent-transactions');
+                if(container) container.innerHTML='<p class="text-red-500 text-center py-4">Gagal memuat dashboard. Silakan coba lagi.</p>';
+            } finally {
+                window.hideLoading();
+            }
+        }
+
+        function renderTransactions(data) {
+            const container = document.getElementById('recent-transactions');
+            const txList = data.transactions || [];
+            if (!txList.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M3 10h4l3-3h4l3 3h4v10a2 2 0 01-2 2H5a2 2 0 01-2-2V10z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="empty-state-title">Belum ada transaksi</h4>
+                        <p class="empty-state-text">Tambahkan transaksi pertama Anda untuk mulai melacak keuangan</p>
+                        <a href="/transactions.html" class="btn btn-primary">
+                            + Tambah Transaksi Pertama
+                        </a>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = txList.map(tx => `
+                <div class="flex justify-between items-center p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center ${tx.type === 'income' ? 'bg-green-100 text-success' : 'bg-red-100 text-danger'}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 8c-2.21 0-4.3-.85-5.87-2.2l1.43-1.43A7.94 7.94 0 0112 6c1.95.65 3.68 1.9 5.02 3.58l-1.43 1.43A7.93 7.93 0 0112 8z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="font-medium text-gray-800">${window.escapeHTML(tx.title || 'Tanpa judul')}</p>
+                            <p class="text-sm text-gray-500">${window.formatDate(tx.transaction_date)}</p>
+                        </div>
+                    </div>
+                    <p class="font-semibold text-lg ${tx.type === 'income' ? 'text-success' : 'text-danger'}">
+                        ${tx.type === 'income' ? '+' : '-'}Rp${parseInt(tx.amount || 0).toLocaleString('id-ID')}
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('transactionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.monthly.labels,
+                    datasets: [{
+                        label: 'Pemasukan',
+                        data: data.monthly.income,
+                        backgroundColor: '#16a34a',
+                        borderRadius: 8,
+                        barThickness: 20
+                    }, {
+                        label: 'Pengeluaran',
+                        data: data.monthly.expense,
+                        backgroundColor: '#dc2626',
+                        borderRadius: 8,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { padding: 20, font: { size: 14 } } },
+                        tooltip: {
+                            backgroundColor: 'white',
+                            titleColor: '#1e293b',
+                            bodyColor: '#64748b',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9', drawBorder: false },
+                            ticks: { font: { size: 12 }, color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 12 }, color: '#94a3b8' }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        loadDashboard();
+    </script>
+<script>
+      (() => {
+        const path=location.pathname.split('/').pop().replace('.html','') || 'dashboard';
+        document.querySelectorAll('[data-nav]').forEach(a=>{ if(a.dataset.nav===path) a.classList.add('sidebar-link-active'); });
+        const u=JSON.parse(localStorage.getItem('user')||'{}');
+        const name=u.name||'Pengguna';
+        const sn=document.getElementById('sidebar-user-name'); const av=document.getElementById('sidebar-avatar');
+        if(sn) sn.textContent=name; if(av) av.textContent=name.trim().charAt(0).toUpperCase()||'N';
+      })();
+    </script>
+</body>
+</html>

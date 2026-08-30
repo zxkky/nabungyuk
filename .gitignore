@@ -1,0 +1,43 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+nabungyuk
+nabungyuk.exe
+nabungyuk.exe~
+bin/
+build/
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+.dbdata/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/receipts/*
+!uploads/receipts/.gitkeep
+uploads/
+
+# Logs
+*.log
+logs/
+
+# Testing
+.test
+*.out

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NabungYuk - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#16a34a',
+                        'primary-dark': '#15803d',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="auth-page min-h-screen flex items-center justify-center">
+    <div class="auth-orb auth-orb-a"></div><div class="auth-orb auth-orb-b"></div>
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-8 auth-card">
+            <!-- Logo/Header -->
+            <div class="text-center mb-8">
+                <div class="bg-green-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🌱</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">NabungYuk</h1>
+                <p class="text-gray-500 text-sm mt-1">Kelola uang, capai impian</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" required
+                           class="form-input"
+                           placeholder="nama@email.com">
+                </div>
+
+                <div>
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" required
+                           class="form-input"
+                           placeholder="••••••••">
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary btn-lg w-full">
+                    Masuk
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center">
+                    <span class="px-4 bg-white text-gray-400 text-sm">atau</span>
+                </div>
+            </div>
+
+            <!-- Register link -->
+            <p class="text-center text-gray-600">
+                Belum punya akun?
+                <a href="/register.html" class="text-primary font-semibold hover:underline">Daftar sekarang</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="form-message" class="hidden mt-4 rounded-xl px-4 py-3 text-sm"></div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message=document.getElementById('form-message'), btn=e.submitter;
+            const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
+            if(!email || !password){ message.textContent='Email dan password wajib diisi.'; message.className='mt-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700'; return; }
+            btn.disabled=true; btn.textContent='Memproses...'; message.className='hidden';
+            try {
+                const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+                const data=await response.json().catch(()=>({success:false,message:'Respons server tidak valid.'}));
+                if(data.success){localStorage.setItem('token',data.data.token);localStorage.setItem('user',JSON.stringify(data.data.user));window.location.replace('/dashboard.html');return;}
+                message.textContent=data.message||'Login gagal'; message.className='mt-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700';
+            } catch(_){message.textContent='Tidak dapat terhubung ke server.';message.className='mt-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700';}
+            btn.disabled=false; btn.textContent='Masuk';
+        });
+    </script>
+</body>
+</html>

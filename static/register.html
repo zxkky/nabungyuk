@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NabungYuk - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#16a34a',
+                        'primary-dark': '#15803d',
+                    }
+                }
+            }
+        }
+    </script>
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="auth-page min-h-screen flex items-center justify-center">
+    <div class="auth-orb auth-orb-a"></div><div class="auth-orb auth-orb-b"></div>
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-8 auth-card">
+            <!-- Logo/Header -->
+            <div class="text-center mb-8">
+                <div class="bg-green-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🌱</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">NabungYuk</h1>
+                <p class="text-gray-500 text-sm mt-1">Buat akun baru</p>
+            </div>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="space-y-6">
+                <div>
+                    <label class="form-label" for="name">Nama Lengkap</label>
+                    <input type="text" id="name" required
+                           class="form-input"
+                           placeholder="John Doe">
+                </div>
+
+                <div>
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" required
+                           class="form-input"
+                           placeholder="nama@email.com">
+                </div>
+
+                <div>
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" required minlength="6"
+                           class="form-input"
+                           placeholder="Minimal 6 karakter">
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary btn-lg w-full">
+                    Daftar
+                </button>
+            </form>
+
+            <!-- Login link -->
+            <p class="text-center text-gray-600 mt-6">
+                Sudah punya akun?
+                <a href="/index.html" class="text-primary font-semibold hover:underline">Masuk di sini</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="form-message" class="hidden mt-4 rounded-xl px-4 py-3 text-sm"></div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message=document.getElementById('form-message'), btn=e.submitter;
+            const name=document.getElementById('name').value.trim(), email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
+            if(name.length<2 || name.length>100){message.textContent='Nama harus 2–100 karakter.';message.className='mt-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700';return;}
+            if(password.length<6 || password.length>72){message.textContent='Password harus 6–72 karakter.';message.className='mt-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700';return;}
+            btn.disabled=true;btn.textContent='Mendaftarkan...';message.className='hidden';
+            try{const response=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});const data=await response.json().catch(()=>({success:false,message:'Respons server tidak valid.'}));if(data.success){localStorage.setItem('token',data.data.token);localStorage.setItem('user',JSON.stringify(data.data.user));window.location.replace('/dashboard.html');return;}message.textContent=data.message||'Registrasi gagal';message.className='mt-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700';}catch(_){message.textContent='Tidak dapat terhubung ke server.';message.className='mt-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700';}btn.disabled=false;btn.textContent='Daftar';
+        });
+    </script>
+</body>
+</html>

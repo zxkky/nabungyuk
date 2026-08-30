@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NabungYuk - Tabungan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#16a34a',
+                        'primary-dark': '#15803d',
+                        secondary: '#2563eb',
+                        success: '#15803d',
+                        danger: '#dc2626',
+                        warning: '#d97706',
+                        info: '#2563eb',
+                    },
+                    borderRadius: {
+                        'card': '16px',
+                    },
+                    spacing: {
+                        'card': '24px',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Shared CSS & JS -->
+    <link rel="stylesheet" href="/static/css/app.css">
+    <script src="/static/js/app.js?v=2"></script>
+</head>
+<body class="bg-gray-50 min-h-screen app-shell" id="app">
+    <aside class="app-sidebar">
+  <a class="brand" href="/dashboard.html"><span class="brand-mark">🌱</span><span><span class="brand-title">NabungYuk</span><span class="brand-sub">Personal finance</span></span></a>
+  <div class="nav-section">Menu utama</div>
+  <nav class="sidebar-nav">
+    <a href="/dashboard.html" class="sidebar-link" data-nav="dashboard"><span class="nav-icon">⌂</span>Dashboard</a>
+    <a href="/transactions.html" class="sidebar-link" data-nav="transactions"><span class="nav-icon">↕</span>Transaksi</a>
+    <a href="/savings.html" class="sidebar-link" data-nav="savings"><span class="nav-icon">◎</span>Tabungan</a>
+    <a href="/reminders.html" class="sidebar-link" data-nav="reminders"><span class="nav-icon">◷</span>Pengingat</a>
+    <a href="/reports.html" class="sidebar-link" data-nav="reports"><span class="nav-icon">▥</span>Laporan</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user"><div class="avatar" id="sidebar-avatar">N</div><div style="min-width:0"><div class="sidebar-user-name" id="sidebar-user-name">Pengguna</div><div class="sidebar-user-label">Akun aktif</div></div></div>
+    <button onclick="logout()" class="btn sidebar-logout"><span class="nav-icon">↪</span>Keluar</button>
+  </div>
+</aside>
+    <!-- Loading overlay -->
+    <div id="loading" class="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="app-main-shell">
+        <header class="app-header">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-2 md:hidden">🌱</span>
+                        <span class="font-bold text-xl text-gray-800 md:hidden">NabungYuk</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name" class="text-gray-700 font-medium hidden sm:block"></span>
+                        <button id="mobile-menu-button" class="md:hidden text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Mobile menu (hidden by default) -->
+                <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+                    <a href="/dashboard.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">📊 Dashboard</a>
+                    <a href="/transactions.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">💰 Transaksi</a>
+                    <a href="/savings.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">🎯 Tabungan</a>
+                    <a href="/reminders.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">🔔 Pengingat</a>
+                    <a href="/reports.html" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">📈 Laporan</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50">🚪 Keluar</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="page-content">
+                <!-- Page Header -->
+                <div class="mb-8 flex justify-between items-center">
+                    <div>
+                        <h1 class="h-page text-gray-800">Tabungan</h1>
+                        <p class="text-gray-500 mt-1">Capai target tabungan Anda</p>
+                    </div>
+                    <button onclick="openGoalModal()" class="btn btn-primary">
+                        + Buat Target
+                    </button>
+                </div>
+
+                <!-- Savings Goals Grid -->
+                <div id="savings-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <p class="text-gray-500 col-span-full text-center py-8">Memuat...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div id="goal-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-card shadow-xl w-full max-w-lg">
+            <div class="p-8">
+                <h3 id="goal-modal-title" class="h-lg text-gray-800 mb-6">Buat Target Tabungan</h3>
+
+                <form id="goal-form" class="space-y-6">
+                    <!-- Name -->
+                    <div>
+                        <label class="form-label" for="goal-name">Nama Tabungan</label>
+                        <input type="text" id="goal-name" placeholder="Contoh: Liburan, Motor, dll"
+                               class="form-input" required>
+                    </div>
+
+                    <!-- Target Amount -->
+                    <div>
+                        <label class="form-label" for="target-amount">Target (Rp)</label>
+                        <input type="number" id="target-amount" placeholder="Masukkan jumlah target"
+                               class="form-input" required>
+                    </div>
+
+                    <!-- Deadline -->
+                    <div>
+                        <label class="form-label" for="deadline">Deadline</label>
+                        <input type="date" id="deadline" class="form-input" required>
+                    </div>
+
+                    <!-- Form actions -->
+                    <div class="flex justify-end space-x-3 pt-6 border-t">
+                        <button type="button" onclick="closeGoalModal()"
+                                class="btn btn-outline">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="deposit-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+      <div class="bg-white rounded-card shadow-xl w-full max-w-lg"><div class="p-8">
+        <h3 class="h-lg text-gray-800 mb-6">Tambah Setoran</h3>
+        <p id="deposit-goal-name" class="text-sm text-gray-500 mb-4"></p>
+        <form id="deposit-form" class="space-y-6">
+          <div><label class="form-label" for="deposit-amount">Jumlah (Rp)</label><input type="number" min="1" id="deposit-amount" class="form-input" required></div>
+          <div><label class="form-label" for="deposit-date">Tanggal</label><input type="date" id="deposit-date" class="form-input" required></div>
+          <div><label class="form-label" for="deposit-note">Catatan</label><textarea id="deposit-note" class="form-input" maxlength="1000"></textarea></div>
+          <div class="flex justify-end gap-3"><button type="button" onclick="closeDepositModal()" class="btn btn-outline">Batal</button><button type="submit" class="btn btn-primary">Simpan Setoran</button></div>
+        </form>
+      </div></div>
+    </div>
+
+    <script>
+        const token=window.checkAuth(); const user=JSON.parse(localStorage.getItem('user')||'{}');
+        document.getElementById('user-name').textContent=window.escapeHTML(user.name||'Pengguna'); window.initMobileMenu(); window.renderSidebar('savings'); window.hideLoading();
+        let editingGoalId=null, depositGoalId=null;
+        function calculateEstimation(goal){ if(goal.current_amount>=goal.target_amount)return '✅ Target tercapai!'; const remaining=goal.target_amount-goal.current_amount; const days=Math.max(0,Number(goal.days_left||0)); if(!days)return '⚠️ Deadline sudah lewat'; return `Estimasi: ${window.formatCurrency(Math.ceil(remaining/days))}/hari selama ${days} hari`; }
+        async function loadGoals(){
+            const data=await window.api('/api/savings'); const list=document.getElementById('savings-list');
+            if(!data.success){list.innerHTML=`<p class="text-red-500 col-span-full text-center py-8">${window.escapeHTML(data.message||'Gagal memuat tabungan')}</p>`;return;}
+            const goals=data.data.saving_goals||[]; if(!goals.length){list.innerHTML='<div class="col-span-full"><div class="empty-state"><h4 class="empty-state-title">Belum ada target tabungan</h4><p class="empty-state-text">Buat target tabungan pertama Anda.</p><button onclick="openGoalModal()" class="btn btn-primary">+ Buat Target Pertama</button></div></div>';return;}
+            list.innerHTML=goals.map(g=>{const progress=Math.min(100,Math.round(Number(g.progress||0)));return `<div class="card"><div class="flex justify-between items-start mb-4"><h3 class="font-bold text-lg text-gray-800">${window.escapeHTML(g.name)}</h3><span class="badge ${g.is_completed?'badge-completed':'badge-active'}">${g.is_completed?'Selesai':'Aktif'}</span></div><div class="progress-bar-container"><div class="progress-bar-text"><span>Progress</span><span class="font-bold text-primary">${progress}%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${progress}%"></div></div></div><div class="mb-4"><p class="text-gray-800 font-semibold">${window.formatCurrency(g.current_amount)} <span class="text-gray-400 font-normal">/ ${window.formatCurrency(g.target_amount)}</span></p><p class="text-sm text-gray-500 mt-1">Sisa: ${window.formatCurrency(g.remaining_amount)}</p></div><div class="text-sm text-gray-500 space-y-1"><p>📅 Deadline: ${window.formatDate(g.deadline)}</p><p class="text-primary">${calculateEstimation(g)}</p></div><div class="flex gap-2 mt-5"><button onclick="openDepositModal(${g.id})" class="btn btn-primary flex-1">Setor</button><button onclick="editGoal(${g.id})" class="btn btn-outline">Edit</button><button onclick="deleteGoal(${g.id})" class="btn btn-outline">Hapus</button></div></div>`;}).join('');
+        }
+        function openGoalModal(goal=null){ editingGoalId=goal?.id||null; document.getElementById('goal-modal-title').textContent=editingGoalId?'Edit Target Tabungan':'Buat Target Tabungan'; document.getElementById('goal-name').value=goal?.name||''; document.getElementById('target-amount').value=goal?.target_amount||''; document.getElementById('deadline').value=goal?.deadline?new Date(goal.deadline).toISOString().slice(0,10):new Date().toISOString().slice(0,10); document.getElementById('goal-modal').classList.remove('hidden'); document.getElementById('goal-modal').classList.add('flex'); }
+        function closeGoalModal(){document.getElementById('goal-modal').classList.add('hidden');document.getElementById('goal-modal').classList.remove('flex');document.getElementById('goal-form').reset();editingGoalId=null;}
+        async function editGoal(id){const data=await window.api(`/api/savings/${id}`);if(!data.success){window.toast(data.message||'Gagal mengambil target','error');return;}openGoalModal(data.data.saving_goal);}
+        async function deleteGoal(id){if(!confirm('Hapus target tabungan ini? Semua histori setorannya juga akan dihapus.'))return;const data=await window.api(`/api/savings/${id}`,{method:'DELETE'});if(!data.success){window.toast(data.message||'Gagal menghapus target','error');return;}window.toast('Target tabungan berhasil dihapus');loadGoals();}
+        async function openDepositModal(id){const data=await window.api(`/api/savings/${id}`);if(!data.success){window.toast(data.message||'Gagal mengambil target','error');return;}depositGoalId=id;document.getElementById('deposit-goal-name').textContent=`Target: ${data.data.saving_goal.name}`;document.getElementById('deposit-date').value=new Date().toISOString().slice(0,10);document.getElementById('deposit-modal').classList.remove('hidden');document.getElementById('deposit-modal').classList.add('flex');}
+        function closeDepositModal(){document.getElementById('deposit-modal').classList.add('hidden');document.getElementById('deposit-modal').classList.remove('flex');document.getElementById('deposit-form').reset();depositGoalId=null;}
+        document.getElementById('goal-form').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;const payload={name:document.getElementById('goal-name').value.trim(),target_amount:Number(document.getElementById('target-amount').value),deadline:document.getElementById('deadline').value};const data=await window.api(editingGoalId?`/api/savings/${editingGoalId}`:'/api/savings',{method:editingGoalId?'PUT':'POST',body:JSON.stringify(payload)});btn.disabled=false;if(!data.success){window.toast(data.message||'Gagal menyimpan target','error');return;}closeGoalModal();window.toast(editingGoalId?'Target berhasil diupdate':'Target berhasil dibuat');loadGoals();});
+        document.getElementById('deposit-form').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;const data=await window.api(`/api/savings/${depositGoalId}/deposit`,{method:'POST',body:JSON.stringify({amount:Number(document.getElementById('deposit-amount').value),deposit_date:document.getElementById('deposit-date').value,note:document.getElementById('deposit-note').value.trim()})});btn.disabled=false;if(!data.success){window.toast(data.message||'Gagal menyimpan setoran','error');return;}closeDepositModal();window.toast('Setoran berhasil ditambahkan');loadGoals();});
+        loadGoals();
+    </script>
+<script>
+      (() => {
+        const path=location.pathname.split('/').pop().replace('.html','') || 'dashboard';
+        document.querySelectorAll('[data-nav]').forEach(a=>{ if(a.dataset.nav===path) a.classList.add('sidebar-link-active'); });
+        const u=JSON.parse(localStorage.getItem('user')||'{}');
+        const name=u.name||'Pengguna';
+        const sn=document.getElementById('sidebar-user-name'); const av=document.getElementById('sidebar-avatar');
+        if(sn) sn.textContent=name; if(av) av.textContent=name.trim().charAt(0).toUpperCase()||'N';
+      })();
+    </script>
+</body>
+</html>
