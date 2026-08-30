@@ -170,7 +170,3 @@ Detail lengkap ada di [`migrations/2024_01_01_create_tables.sql`](migrations/202
 - Rate limiting pada endpoint login.
 - CORS dibatasi sesuai whitelist origin dari environment variable.
 - `TRUSTED_PROXIES` opsional untuk mencegah spoofing header `X-Forwarded-For` bila tidak di belakang reverse proxy.
-
-## 📄 Lisensi
-
-Belum ditentukan — tambahkan file `LICENSE` sesuai kebutuhan sebelum publikasi.
